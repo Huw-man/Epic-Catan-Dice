@@ -52,7 +52,7 @@ function initThree() {
 
     //Helpers
     // var axes = new THREE.AxisHelper(5);
-    var grid = new THREE.GridHelper(50, 1);
+    // var grid = new THREE.GridHelper(50, 1);
     // scene.add(axes);
     // grid.setColors(0x0000ff, 0x808080);
     // grid.rotation.x = Math.PI /2;
