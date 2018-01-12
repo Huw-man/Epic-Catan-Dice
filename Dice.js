@@ -53,10 +53,10 @@ function initThree() {
     //Helpers
     // var axes = new THREE.AxisHelper(5);
     var grid = new THREE.GridHelper(50, 1);
-    grid.setColors(0x0000ff, 0x808080);
-    grid.rotation.x = Math.PI /2;
     // scene.add(axes);
-    scene.add(grid);
+    // grid.setColors(0x0000ff, 0x808080);
+    // grid.rotation.x = Math.PI /2;
+    // scene.add(grid);
 
     // Lights
     // var ambientLight = new THREE.AmbientLight(0xffffff, 0.001);
