@@ -3,7 +3,7 @@
 var scene, camera, camera2, cameraHelper, renderer, controls, raycaster;
 //Meshes for THREE
 var cube, cube2, redCity, blueCity, whiteCity, orangeCity, greenCity, brownCity,
-    plane, playerSelectors, selectorBackground;
+    plane, playerSelectors, selectorBackground, turnIndicators;
 //Bodies for CANNON
 var world, cubeBody, cubeBody2, leftBarrier, rightBarrier, topBarrier, bottomBarrier;
 var WIDTH = window.innerWidth,
@@ -14,6 +14,7 @@ var mouse = new THREE.Vector2(), INTERSECTED;
 var sixRandomVectors = generateSixRandomVectors();
 var diceView = false;
 var transition = false;
+var turnOrder = [];
 
 initThree();
 initCannon();
@@ -23,6 +24,7 @@ document.addEventListener('click', onMouseClick, false);
 document.getElementById("roll button").onclick = roll;
 document.getElementById("simple_dice").onclick = function () { transition = true };
 document.getElementById("back").onclick = function () { transition = true};
+document.getElementById("reset_turns").onclick = resetTurns;
 cubeBody.addEventListener("sleep", function () { afterRoll(cube) });
 cubeBody2.addEventListener("sleep", function () { afterRoll(cube2) });
 
@@ -128,40 +130,40 @@ function initThree() {
 
     playerSelectors = new THREE.Group();
     //create city selectors
-    var cityGeometry = createCityGeometry(0.7);
-    var spacing = 3;
+    var cityGeometry = createCityGeometry(1);
+    var spacing = 4;
     whiteCity = new THREE.Mesh(cityGeometry, new THREE.MeshLambertMaterial());
-    whiteCity.name = "whiteCity";
+    whiteCity.name = "White";
     whiteCity.castShadow = true;
     whiteCity.position.set(-(5/2) * spacing,0,0);
     playerSelectors.add(whiteCity);
 
     redCity = new THREE.Mesh(cityGeometry, new THREE.MeshLambertMaterial({color: 0xff0000}));
-    redCity.name = "redCity";
+    redCity.name = "Red";
     redCity.castShadow = true;
     redCity.position.set(-(3/2) * spacing,0,0);
     playerSelectors.add(redCity);
 
     blueCity = new THREE.Mesh(cityGeometry, new THREE.MeshLambertMaterial({color: 0x0000ff}));
-    blueCity.name = "blueCity";
+    blueCity.name = "Blue";
     blueCity.castShadow = true;
     blueCity.position.set(-spacing/2,0,0);
     playerSelectors.add(blueCity);
 
     orangeCity = new THREE.Mesh(cityGeometry, new THREE.MeshLambertMaterial({color: 0xffA500}));
-    orangeCity.name = "orangeCity";
+    orangeCity.name = "Orange";
     orangeCity.castShadow = true;
     orangeCity.position.set(spacing/2,0,0);
     playerSelectors.add(orangeCity);
 
     greenCity = new THREE.Mesh(cityGeometry, new THREE.MeshLambertMaterial({color: 0x008000}));
-    greenCity.name = "greenCity";
+    greenCity.name = "Green";
     greenCity.castShadow = true;
     greenCity.position.set((3/2) * spacing,0,0);
     playerSelectors.add(greenCity);
 
     brownCity = new THREE.Mesh(cityGeometry, new THREE.MeshLambertMaterial({color: 0x8B4513}));
-    brownCity.name = "brownCity";
+    brownCity.name = "Brown";
     brownCity.castShadow = true;
     brownCity.position.set((5/2) * spacing,0,0);
     playerSelectors.add(brownCity);
@@ -172,6 +174,12 @@ function initThree() {
 
     playerSelectorLight.target = selectorBackground;
     camera.lookAt(playerSelectors.position);
+
+    turnIndicators = new THREE.Group();
+    var vHeight = visibleHeightAtZDepth(plane.position.z, camera) /2 *0.82;
+    turnIndicators.position.set(0,vHeight,2);
+    // playerSelectors.rotation.y = -Math.PI/2;
+    scene.add(turnIndicators);
     // Add OrbitControls so that we can pan around with the mouse.
     // controls = new THREE.OrbitControls(camera, renderer.domElement);
 
@@ -240,8 +248,8 @@ function initCannon() {
     world.add(groundBody);
 
     //position of barriers in view frame
-    var pHeight = visibleHeightAtZDepth(plane.position.z, camera) *0.4;
-    var pWidth = visibleWidthAtZDepth(plane.position.z, camera) *0.4;
+    var pHeight = visibleHeightAtZDepth(plane.position.z, camera) /2*0.8;
+    var pWidth = visibleWidthAtZDepth(plane.position.z, camera) /2*0.8;
     // console.log(pHeight,pWidth);
     //Barriers
     // -x plane
@@ -283,11 +291,11 @@ function updatePhysics() {
 
 // Renders the scene and updates the render as needed.
 function animate() {
-    delta += 0.001;
+    // delta += 0.001;
     // Read more about requestAnimationFrame at http://www.paulirish.com/2011/requestanimationframe-for-smart-animating/
     requestAnimationFrame(animate);
 
-    rotateSelectors(sixRandomVectors);
+    rotateSelectors(sixRandomVectors); //also rotates indicators
     transitions();
     displayControls();
     // show intersections
@@ -309,6 +317,7 @@ function onWindowResize() {
     camera.aspect = WIDTH / HEIGHT;
     camera.updateProjectionMatrix();
     positionBarriers();
+    positionTurnIndicators();
 }
 
 function findDiceFace(dice) {
@@ -443,19 +452,40 @@ function highlightSelectors() {
 
 function onMouseClick( event ) {
     if (INTERSECTED) {
-        alert( INTERSECTED.name);
+        // alert( INTERSECTED.name);
+        if (!containsObject(turnOrder, INTERSECTED)) {
+            turnOrder.push(INTERSECTED);
+            displayPlayerOrder();
+        } else {
+            // alert("player already selected");
+            var prompt = document.getElementById("prompt_text");
+            prompt.innerHTML = INTERSECTED.name +" is already selected";
+            setTimeout(function() {
+                prompt.innerHTML = "select players";
+            }, 1000);
+        }
     }
+}
+
+function containsObject( array, obj) {
+    for (var i=0; i < array.length; i++) {
+        if (array[i] === obj) { return true;}
+    }
+    return false;
 }
 
 
 function rotateSelectors( axes ) {
     // console.log(axes);
     var selectors = playerSelectors.children;
-    selectors[0].rotateOnAxis(axes[0], 0.01);
-
+    // selectors[0].rotateOnAxis(axes[0], 0.01);
     for (var i=0; i < selectors.length; i++) {
         selectors[i].rotateOnAxis(axes[i], 0.01);
+        if (turnIndicators.children[i]){
+            turnIndicators.children[i].rotateOnAxis(axes[i], 0.01);
+        }
     }
+
 }
 
 function transitions(){
@@ -506,13 +536,102 @@ function displayControls() {
 
 function positionBarriers() {
     //update barriers according to window resize
-    var pHeight = visibleHeightAtZDepth(plane.position.z, camera) /2 *0.90;
-    var pWidth = visibleWidthAtZDepth(plane.position.z, camera) /2 *0.90;
-    console.log(pHeight);
-    console.log(pWidth);
+    var pHeight = visibleHeightAtZDepth(plane.position.z, camera) /2 *0.80;
+    var pWidth = visibleWidthAtZDepth(plane.position.z, camera) /2 *0.80;
 
     leftBarrier.position.set(-pWidth,0,0);
     rightBarrier.position.set( pWidth,0, 0);
     topBarrier.position.set( 0, -pHeight, 0);
     bottomBarrier.position.set( 0, pHeight, 0);
+}
+
+function resetTurns() {
+    turnOrder = [];
+    displayPlayerOrder();
+    refreshTurnIndicators(true);
+    document.getElementById("prompt_text").innerHTML = "select players";
+}
+
+function displayPlayerOrder() {
+    var playersText ="";
+
+    for (var i=0; i < turnOrder.length; i++){
+        playersText += turnOrder[i].name+" ";
+        var newPlayer;
+        switch (turnOrder[i].name) {
+            case "Red":
+                newPlayer = redCity.clone();
+                break;
+            case "White":
+                newPlayer = whiteCity.clone();
+                break;
+            case "Blue":
+                newPlayer = blueCity.clone();
+                break;
+            case "Orange":
+                newPlayer = orangeCity.clone();
+                break;
+            case "Green":
+                newPlayer = greenCity.clone();
+                break;
+            case "Brown":
+                newPlayer = brownCity.clone();
+                break;
+        }
+        if (!indicatorAdded(newPlayer)){
+            newPlayer.scale.set(0.5,0.5,0.5);
+            turnIndicators.add(newPlayer);
+        }
+    }
+    document.getElementById("player_order").innerHTML = playersText;
+    refreshTurnIndicators(false);
+
+    function indicatorAdded( obj) {
+        for (var i=0; i<turnIndicators.children.length; i++){
+            if (turnIndicators.children[i].name === obj.name){
+                return true;
+            }
+        }
+        return false;
+    }
+}
+
+function refreshTurnIndicators( reset ) {
+    if (reset) {
+        var len = turnIndicators.children.length;
+        for (var i=0; i<len; i++){
+            turnIndicators.remove(turnIndicators.children.pop());
+        }
+    } else {
+        var multiplier;
+        if (turnIndicators.children.length % 2 === 0){
+            multiplier = -(turnIndicators.children.length / 2)+(1/2);
+        } else {
+            multiplier = -(turnIndicators.children.length -1) /2;
+        }
+
+        var spacing = 2;
+        for (var j=0; j<turnOrder.length; j++ ){
+            var current = turnOrder[j];
+            var indicator = getTurnIndicator(current.name);
+            if (indicator){
+                indicator.position.set( multiplier * spacing, 0,0);
+                multiplier += 1;
+            }
+
+        }
+    }
+    turnIndicators.updateMatrixWorld();
+    function getTurnIndicator(name) {
+        for (var k=0; turnIndicators.children.length; k++){
+            if (name === turnIndicators.children[k].name){ return turnIndicators.children[k]}
+        }
+        return false;
+    }
+}
+
+function positionTurnIndicators() {
+    //update indicators according to window resize
+    var pHeight = visibleHeightAtZDepth(plane.position.z, camera) /2 *0.82;
+    turnIndicators.position.set(0, pHeight, 2);
 }
