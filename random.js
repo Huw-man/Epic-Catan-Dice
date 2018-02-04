@@ -2,8 +2,10 @@
 console.log("random js");
 var randomDecimalArray = []; //holds random numbers
 var index = 0;
-// console.log(randomDecimalArray[index]);
+generateRandomNumbersWithoutRandomORG();
 // requestRandomDotOrg();
+// console.log(randomDecimalArray[index]);
+
 function requestRandomDotOrg() {
     var xhr = new XMLHttpRequest();
     var url = "https://api.random.org/json-rpc/1/invoke";
@@ -15,9 +17,9 @@ function requestRandomDotOrg() {
             var json = JSON.parse(xhr.responseText);
             console.log(json);
             randomDecimalArray = randomDecimalArray.concat(json.result.random.data);
-            // console.log(randomDecimalArray);
         } else {
-            alert("error in request to Random.org");
+            console.log("error in request to Random.org");
+            // alert("error in request to Random.org");
         }
     };
     var data = JSON.stringify({
@@ -25,7 +27,7 @@ function requestRandomDotOrg() {
         "method": "generateDecimalFractions",
         "params": {
             "apiKey": "a7ebe9ec-3c8e-41a9-ac97-bcb8c949d5a2",
-            "n": 10,
+            "n": 15,
             "decimalPlaces": 16,
             "replacement": true
         },
@@ -36,19 +38,12 @@ function requestRandomDotOrg() {
 
 function getNextRandomNum() {
     index ++;
-    if (!randomDecimalArray[index]) {
-        console.log("generating");
-        for (var i=0; i<10; i++){
-            randomDecimalArray.push(Math.random());
-        }
-    }
-
-    // if (randomDecimalArray.length - index < 5){ //running out of random numbers
-    //     requestRandomDotOrg();
-    // }
     // console.log(index);
-    // console.log(randomDecimalArray)
-    // console.log(randomDecimalArray[index]);
+    // console.log(randomDecimalArray.length);
+    if (randomDecimalArray.length - index < 5){ //running out of random numbers
+        console.log("needs more numbers");
+        requestRandomDotOrg();
+    }
     return randomDecimalArray[index];
 }
 
@@ -69,4 +64,11 @@ function generateSixRandomVectors() {
         array.push(new THREE.Vector3(r.x, r.y, r.z));
     }
     return array;
+}
+
+function generateRandomNumbersWithoutRandomORG() {
+    console.log("generating");
+    for (var i=0; i<20; i++){
+        randomDecimalArray.push(Math.random());
+    }
 }

@@ -1,4 +1,6 @@
 "use strict";
+requestRandomDotOrg();
+
 // Set up the scene, camera, and renderer as global variables.
 var scene, camera, camera2, cameraHelper, renderer, controls, raycaster;
 //Meshes for THREE
@@ -14,7 +16,9 @@ var mouse = new THREE.Vector2(), INTERSECTED;
 var sixRandomVectors = generateSixRandomVectors();
 var diceView = false;
 var transition = false;
-var turnOrder = [];
+var turnOrder = []; //holds the objects
+var turnIndex = 0; //tracks current turn
+var playing = false; //whether the turn is going to be tracked or not
 
 initThree();
 initCannon();
@@ -23,6 +27,7 @@ document.addEventListener( 'mousemove', onDocumentMouseMove, false );
 document.addEventListener('click', onMouseClick, false);
 document.getElementById("roll button").onclick = roll;
 document.getElementById("simple_dice").onclick = function () { transition = true };
+document.getElementById("play").onclick = play;
 document.getElementById("back").onclick = function () { transition = true};
 document.getElementById("reset_turns").onclick = resetTurns;
 cubeBody.addEventListener("sleep", function () { afterRoll(cube) });
@@ -372,6 +377,13 @@ function visibleWidthAtZDepth( depth, camera ) {
 function roll(){
     rollDice1();
     rollDice2();
+    if (playing) {
+        highlightCurrentTurn(turnIndex);
+        turnIndex += 1;
+        if (turnIndex === turnOrder.length) { //reached last index must reset to first
+            turnIndex = 0;
+        }
+    }
 }
 
 function rollDice1() {
@@ -422,7 +434,6 @@ function createCityGeometry( scale ) {
     geom.computeBoundingBox();
     geom.center();
     return geom;
-
 }
 
 function onDocumentMouseMove( event ) {
@@ -474,7 +485,6 @@ function containsObject( array, obj) {
     return false;
 }
 
-
 function rotateSelectors( axes ) {
     // console.log(axes);
     var selectors = playerSelectors.children;
@@ -522,10 +532,10 @@ function displayControls() {
     var rollButtons = document.getElementById("dice");
     var options = document.getElementById("options");
     if (diceView){
-       rollButtons.style.display = "flex";
-       options.style.display = "flex";
-       startDisplay.style.display= "none";
-       startPrompt.style.display = "none";
+        rollButtons.style.display = "flex";
+        options.style.display = "flex";
+        startDisplay.style.display= "none";
+        startPrompt.style.display = "none";
     } else {
         startDisplay.style.display="flex";
         startPrompt.style.display = "flex";
@@ -618,20 +628,44 @@ function refreshTurnIndicators( reset ) {
                 indicator.position.set( multiplier * spacing, 0,0);
                 multiplier += 1;
             }
-
         }
     }
     turnIndicators.updateMatrixWorld();
-    function getTurnIndicator(name) {
-        for (var k=0; turnIndicators.children.length; k++){
-            if (name === turnIndicators.children[k].name){ return turnIndicators.children[k]}
+}
+
+function getTurnIndicator(name) {
+    for (var k=0; turnIndicators.children.length; k++){
+        if (name === turnIndicators.children[k].name){
+            return turnIndicators.children[k]
         }
-        return false;
     }
+    return false;
 }
 
 function positionTurnIndicators() {
     //update indicators according to window resize
     var pHeight = visibleHeightAtZDepth(plane.position.z, camera) /2 *0.82;
     turnIndicators.position.set(0, pHeight, 2);
+}
+
+//takes in index of turn
+function highlightCurrentTurn( index ){
+    if (Array.isArray(turnOrder) && turnOrder.length) {
+        var currentIndicator = getTurnIndicator(turnOrder[index].name);
+        if (index === 0) { //select previous indicator
+            index = turnOrder.length; //last index
+        }
+        var prevIndicator = getTurnIndicator(turnOrder[index - 1].name);
+        if (currentIndicator && prevIndicator) {
+            currentIndicator.material.emissive.set(0xff0000);
+            prevIndicator.material.emissive.set(0x0);
+        } else {
+            Error("Turn Indicator not found!");
+        }
+    }
+}
+
+function play() {
+    transition = true;
+    playing = true;
 }
