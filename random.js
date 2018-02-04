@@ -2,6 +2,7 @@
 console.log("random js");
 var randomDecimalArray = []; //holds random numbers
 var index = 0;
+var requesting = false;
 generateRandomNumbersWithoutRandomORG();
 // requestRandomDotOrg();
 // console.log(randomDecimalArray[index]);
@@ -17,6 +18,8 @@ function requestRandomDotOrg() {
             var json = JSON.parse(xhr.responseText);
             console.log(json);
             randomDecimalArray = randomDecimalArray.concat(json.result.random.data);
+            console.log(randomDecimalArray);
+            requesting = false;
         } else {
             console.log("error in request to Random.org");
             // alert("error in request to Random.org");
@@ -27,7 +30,7 @@ function requestRandomDotOrg() {
         "method": "generateDecimalFractions",
         "params": {
             "apiKey": "a7ebe9ec-3c8e-41a9-ac97-bcb8c949d5a2",
-            "n": 15,
+            "n": 20,
             "decimalPlaces": 16,
             "replacement": true
         },
@@ -38,10 +41,12 @@ function requestRandomDotOrg() {
 
 function getNextRandomNum() {
     index ++;
-    // console.log(index);
+    console.log(index);
+    console.log(requesting);
     // console.log(randomDecimalArray.length);
-    if (randomDecimalArray.length - index < 5){ //running out of random numbers
+    if (randomDecimalArray.length - index < 5 && requesting === false){ //running out of random numbers
         console.log("needs more numbers");
+        requesting = true;
         requestRandomDotOrg();
     }
     return randomDecimalArray[index];

@@ -28,7 +28,10 @@ document.addEventListener('click', onMouseClick, false);
 document.getElementById("roll button").onclick = roll;
 document.getElementById("simple_dice").onclick = function () { transition = true };
 document.getElementById("play").onclick = play;
-document.getElementById("back").onclick = function () { transition = true};
+document.getElementById("back").onclick = function () {
+    transition = true;
+    playing = false;
+};
 document.getElementById("reset_turns").onclick = resetTurns;
 cubeBody.addEventListener("sleep", function () { afterRoll(cube) });
 cubeBody2.addEventListener("sleep", function () { afterRoll(cube2) });
