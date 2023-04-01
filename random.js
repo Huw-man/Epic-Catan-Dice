@@ -7,6 +7,7 @@ generateRandomNumbersWithoutRandomORG();
 // requestRandomDotOrg();
 // console.log(randomDecimalArray[index]);
 
+// random.org api has changed and this no longer works. Mega sad face.
 function requestRandomDotOrg() {
     var xhr = new XMLHttpRequest();
     var url = "https://api.random.org/json-rpc/1/invoke";
@@ -47,7 +48,8 @@ function getNextRandomNum() {
     if (randomDecimalArray.length - index < 5 && requesting === false){ //running out of random numbers
         console.log("needs more numbers");
         requesting = true;
-        requestRandomDotOrg();
+        // requestRandomDotOrg();
+        generateRandomNumbersWithoutRandomORG()
     }
     return randomDecimalArray[index];
 }

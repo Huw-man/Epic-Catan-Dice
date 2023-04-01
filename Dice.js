@@ -1,5 +1,5 @@
 "use strict";
-requestRandomDotOrg();
+// requestRandomDotOrg();
 
 // Set up the scene, camera, and renderer as global variables.
 var scene, camera, camera2, cameraHelper, renderer, controls, raycaster;
